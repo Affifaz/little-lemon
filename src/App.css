@@ -418,6 +418,19 @@
   outline-offset: 2px;
 }
 
+.DateInput.is-invalid,
+.TextInput.is-invalid {
+  outline: 2px solid #c0392b;
+  outline-offset: 2px;
+}
+
+.FormField-error {
+  color: #c0392b;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin: 8px 0 0;
+}
+
 .TimeGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -457,6 +470,17 @@
   border-color: #333333;
   background-color: #333333;
   box-shadow: inset 0 0 0 3px #f4ce14;
+}
+
+.TimeOption:disabled {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.TimeOption:disabled .TimeOption-radio {
+  border-color: #d1d5db;
 }
 
 .Stepper {
