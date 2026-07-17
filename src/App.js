@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Header from './Header';
 import Nav from './Nav';
 import Home from './Home';
-import Reservation from './Reservation';
+import Main from './Main';
 import Footer from './Footer';
 import './App.css';
 
@@ -17,7 +17,7 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/reservations" element={<Reservation />} />
+          <Route path="/reservations" element={<Main />} />
         </Routes>
       </main>
       <Footer />

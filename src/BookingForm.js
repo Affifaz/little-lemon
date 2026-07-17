@@ -1,56 +1,56 @@
 import { useState } from 'react';
 import { Calendar, Minus, Plus } from 'lucide-react';
+import { ALL_TIME_SLOTS, toLocalISODate } from './utils/timeSlots';
 
-const timeSlots = [
-  { label: '5:00 PM', hour: 17 },
-  { label: '6:00 PM', hour: 18 },
-  { label: '7:00 PM', hour: 19 },
-  { label: '8:00 PM', hour: 20 },
-];
+const occasionOptions = ['Birthday', 'Anniversary'];
 
-function toLocalISODate(dateObj) {
-  const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function getAvailability(selectedDate) {
+function getMinDate() {
   const now = new Date();
-  const todayStr = toLocalISODate(now);
-  const lastSlotHour = timeSlots[timeSlots.length - 1].hour;
+  const lastSlotHour = ALL_TIME_SLOTS[ALL_TIME_SLOTS.length - 1].hour;
   const isTodayFullyBooked = now.getHours() >= lastSlotHour;
+
+  if (!isTodayFullyBooked) {
+    return toLocalISODate(now);
+  }
 
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const minDate = isTodayFullyBooked ? toLocalISODate(tomorrow) : todayStr;
-  const isSelectedDateToday = selectedDate === todayStr;
-
-  return {
-    minDate,
-    isSlotDisabled: (slot) => isSelectedDateToday && slot.hour <= now.getHours(),
-  };
+  return toLocalISODate(tomorrow);
 }
 
-function ReservationStep1({ date, time, diners, onChange, onNext }) {
+function BookingForm({
+  date,
+  time,
+  diners,
+  occasion,
+  availableTimes,
+  dispatch,
+  onChange,
+  onNext,
+}) {
   const [dateError, setDateError] = useState('');
   const [timeError, setTimeError] = useState('');
 
-  const { minDate, isSlotDisabled } = getAvailability(date);
+  const minDate = getMinDate();
+
+  function handleDateChange(event) {
+    const newDate = event.target.value;
+    onChange('date', newDate);
+    dispatch({ type: 'UPDATE_TIMES', date: newDate });
+    if (dateError) setDateError('');
+    if (timeError) setTimeError('');
+  }
 
   function handleSubmit(event) {
     event.preventDefault();
-    const availability = getAvailability(date);
 
-    if (!date || date < availability.minDate) {
+    if (!date || date < minDate) {
       setDateError('Please select an upcoming date.');
       return;
     }
     setDateError('');
 
-    const selectedSlot = timeSlots.find((slot) => slot.label === time);
-    if (!selectedSlot || availability.isSlotDisabled(selectedSlot)) {
+    if (!availableTimes.includes(time)) {
       setTimeError('Please select an available time.');
       return;
     }
@@ -74,11 +74,7 @@ function ReservationStep1({ date, time, diners, onChange, onNext }) {
               className="DateInput-field"
               value={date}
               min={minDate}
-              onChange={(event) => {
-                onChange('date', event.target.value);
-                if (dateError) setDateError('');
-                if (timeError) setTimeError('');
-              }}
+              onChange={handleDateChange}
               aria-invalid={Boolean(dateError)}
               aria-describedby={dateError ? 'reserve-date-error' : undefined}
             />
@@ -93,8 +89,8 @@ function ReservationStep1({ date, time, diners, onChange, onNext }) {
         <div className="FormField">
           <span className="FormField-label">Time</span>
           <div className="TimeGrid" role="radiogroup" aria-label="Reservation time">
-            {timeSlots.map((slot) => {
-              const disabled = isSlotDisabled(slot);
+            {ALL_TIME_SLOTS.map((slot) => {
+              const disabled = !availableTimes.includes(slot.label);
               return (
                 <button
                   key={slot.label}
@@ -141,6 +137,24 @@ function ReservationStep1({ date, time, diners, onChange, onNext }) {
             </button>
           </div>
         </div>
+
+        <div className="FormField">
+          <span className="FormField-label">Occasion</span>
+          <div className="OccasionGroup" role="radiogroup" aria-label="Reservation occasion">
+            {occasionOptions.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={`Pill ${occasion === option ? 'is-active' : ''}`}
+                role="radio"
+                aria-checked={occasion === option}
+                onClick={() => onChange('occasion', occasion === option ? '' : option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <button type="submit" className="Button Button--full">
@@ -150,4 +164,4 @@ function ReservationStep1({ date, time, diners, onChange, onNext }) {
   );
 }
 
-export default ReservationStep1;
+export default BookingForm;

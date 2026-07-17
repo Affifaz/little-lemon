@@ -483,6 +483,12 @@
   border-color: #d1d5db;
 }
 
+.OccasionGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .Stepper {
   display: flex;
   align-items: center;

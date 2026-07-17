@@ -1,21 +1,43 @@
-import { useState } from 'react';
-import ReservationStep1 from './ReservationStep1';
+import { useReducer, useState } from 'react';
+import BookingForm from './BookingForm';
 import ReservationStep2 from './ReservationStep2';
 import ReservationConfirmation from './ReservationConfirmation';
+import { ALL_TIME_SLOTS, toLocalISODate } from './utils/timeSlots';
 
 const initialFormData = {
   date: '',
   time: '7:00 PM',
   diners: 2,
+  occasion: '',
   firstName: '',
   lastName: '',
   email: '',
   phone: '',
 };
 
-function Reservation() {
+function getAvailableTimesForDate(selectedDate) {
+  const now = new Date();
+  const todayStr = toLocalISODate(now);
+  const isSelectedDateToday = selectedDate === todayStr;
+
+  return ALL_TIME_SLOTS.filter(
+    (slot) => !(isSelectedDateToday && slot.hour <= now.getHours())
+  ).map((slot) => slot.label);
+}
+
+export const initializeTimes = () => getAvailableTimesForDate('');
+
+export const updateTimes = (state, action) => {
+  if (action.type !== 'UPDATE_TIMES') {
+    return state;
+  }
+  return getAvailableTimesForDate(action.date);
+};
+
+function Main() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState(initialFormData);
+  const [availableTimes, dispatch] = useReducer(updateTimes, [], initializeTimes);
 
   function handleChange(field, value) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -42,10 +64,13 @@ function Reservation() {
       )}
 
       {step === 1 && (
-        <ReservationStep1
+        <BookingForm
           date={formData.date}
           time={formData.time}
           diners={formData.diners}
+          occasion={formData.occasion}
+          availableTimes={availableTimes}
+          dispatch={dispatch}
           onChange={handleChange}
           onNext={() => setStep(2)}
         />
@@ -64,4 +89,4 @@ function Reservation() {
   );
 }
 
-export default Reservation;
+export default Main;
