@@ -1,15 +1,14 @@
 import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
+import { parseLocalDate, formatTimeLabel } from './utils/timeSlots';
 
 function formatDate(isoDate) {
   if (!isoDate) return '';
-  const [year, month, day] = isoDate.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
   return new Intl.DateTimeFormat('en-US', {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
-  }).format(date);
+  }).format(parseLocalDate(isoDate));
 }
 
 function ReservationConfirmation({ formData }) {
@@ -39,7 +38,7 @@ function ReservationConfirmation({ formData }) {
           Table for {formData.diners}
         </p>
         <p className="Confirmation-detail">
-          {formatDate(formData.date)} {formData.time}
+          {formatDate(formData.date)} {formatTimeLabel(formData.time)}
         </p>
         <p className="Confirmation-detail">Under: {guestName}</p>
       </div>

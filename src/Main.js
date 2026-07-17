@@ -2,11 +2,13 @@ import { useReducer, useState } from 'react';
 import BookingForm from './BookingForm';
 import ReservationStep2 from './ReservationStep2';
 import ReservationConfirmation from './ReservationConfirmation';
-import { ALL_TIME_SLOTS, toLocalISODate } from './utils/timeSlots';
+import { parseLocalDate } from './utils/timeSlots';
+
+/* global fetchAPI */
 
 const initialFormData = {
   date: '',
-  time: '7:00 PM',
+  time: '',
   diners: 2,
   occasion: '',
   firstName: '',
@@ -15,23 +17,16 @@ const initialFormData = {
   phone: '',
 };
 
-function getAvailableTimesForDate(selectedDate) {
-  const now = new Date();
-  const todayStr = toLocalISODate(now);
-  const isSelectedDateToday = selectedDate === todayStr;
-
-  return ALL_TIME_SLOTS.filter(
-    (slot) => !(isSelectedDateToday && slot.hour <= now.getHours())
-  ).map((slot) => slot.label);
-}
-
-export const initializeTimes = () => getAvailableTimesForDate('');
+export const initializeTimes = () => {
+  return fetchAPI(new Date());
+};
 
 export const updateTimes = (state, action) => {
   if (action.type !== 'UPDATE_TIMES') {
     return state;
   }
-  return getAvailableTimesForDate(action.date);
+  const selectedDate = action.date ? parseLocalDate(action.date) : new Date();
+  return fetchAPI(selectedDate);
 };
 
 function Main() {

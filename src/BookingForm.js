@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { Calendar, Minus, Plus } from 'lucide-react';
-import { ALL_TIME_SLOTS, toLocalISODate } from './utils/timeSlots';
+import { toLocalISODate, formatTimeLabel, timeStringToMinutes } from './utils/timeSlots';
+
+/* global fetchAPI */
 
 const occasionOptions = ['Birthday', 'Anniversary'];
 
 function getMinDate() {
   const now = new Date();
-  const lastSlotHour = ALL_TIME_SLOTS[ALL_TIME_SLOTS.length - 1].hour;
-  const isTodayFullyBooked = now.getHours() >= lastSlotHour;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const todaysSlots = fetchAPI(now);
+  const isTodayFullyBooked =
+    todaysSlots.length > 0 &&
+    todaysSlots.every((slot) => timeStringToMinutes(slot) <= nowMinutes);
 
   if (!isTodayFullyBooked) {
     return toLocalISODate(now);
@@ -89,27 +94,26 @@ function BookingForm({
         <div className="FormField">
           <span className="FormField-label">Time</span>
           <div className="TimeGrid" role="radiogroup" aria-label="Reservation time">
-            {ALL_TIME_SLOTS.map((slot) => {
-              const disabled = !availableTimes.includes(slot.label);
-              return (
-                <button
-                  key={slot.label}
-                  type="button"
-                  className={`TimeOption ${time === slot.label ? 'is-selected' : ''}`}
-                  role="radio"
-                  aria-checked={time === slot.label}
-                  disabled={disabled}
-                  onClick={() => {
-                    onChange('time', slot.label);
-                    if (timeError) setTimeError('');
-                  }}
-                >
-                  <span className="TimeOption-radio" />
-                  {slot.label}
-                </button>
-              );
-            })}
+            {availableTimes.map((rawTime) => (
+              <button
+                key={rawTime}
+                type="button"
+                className={`TimeOption ${time === rawTime ? 'is-selected' : ''}`}
+                role="radio"
+                aria-checked={time === rawTime}
+                onClick={() => {
+                  onChange('time', rawTime);
+                  if (timeError) setTimeError('');
+                }}
+              >
+                <span className="TimeOption-radio" />
+                {formatTimeLabel(rawTime)}
+              </button>
+            ))}
           </div>
+          {date && availableTimes.length === 0 && (
+            <p className="FormField-error">No times available for this date.</p>
+          )}
           {timeError && <p className="FormField-error">{timeError}</p>}
         </div>
 
